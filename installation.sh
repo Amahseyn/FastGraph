@@ -23,17 +23,35 @@ cd "$ROOT_DIR"
 "$PYTHON" setup.py build_ext --inplace
 
 # Copy the built extension shared object to the project root for easy import
-BUILTDIR=$(python - <<'PY'
-import sys, glob
+## Find built extension shared objects for the modules and copy them to project root
+BUILT_SO_FILES=$(python - <<'PY'
+import sys
 from pathlib import Path
 bd = Path('build')
-paths = list(bd.rglob('mc_brb_module*.so'))
-print(paths[0] if paths else '')
+paths = []
+if bd.exists():
+	paths += [str(p) for p in bd.rglob('mc_brb_module*.so')]
+	paths += [str(p) for p in bd.rglob('max_clique_module*.so')]
+# also check common lib dirs created by build_ext
+bd2 = Path('lib.linux-x86_64-3.10')
+if bd2.exists():
+	paths += [str(p) for p in bd2.rglob('mc_brb_module*.so')]
+	paths += [str(p) for p in bd2.rglob('max_clique_module*.so')]
+print('\n'.join(paths))
 PY
 )
-if [ -n "$BUILTDIR" ]; then
-	echo "Copying built extension $BUILTDIR to project root"
-	cp "$BUILTDIR" "$ROOT_DIR/"
+
+if [ -n "$BUILT_SO_FILES" ]; then
+	echo "Found built extension files:" 
+	echo "$BUILT_SO_FILES"
+	while IFS= read -r so; do
+		if [ -n "$so" ]; then
+			echo "Copying built extension $so to project root"
+			cp "$so" "$ROOT_DIR/"
+		fi
+	done <<< "$BUILT_SO_FILES"
+else
+	echo "No built extension .so files found in build directories."
 fi
 
 echo

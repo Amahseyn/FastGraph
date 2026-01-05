@@ -6,13 +6,18 @@ ext_modules = [
         "mc_brb_module",
         ["Cpplibs/MaxClique/mc_brb.cpp"],
         extra_compile_args=["-O3", "-std=c++17"],
-    )
+    ),
+    Pybind11Extension(
+        "max_clique_module",
+        ["Cpplibs/MaxClique/max_clique_module.cpp"],
+        extra_compile_args=["-O3", "-std=c++17"],
+    ),
 ]
 
 setup(
-    name="mc_brb_module",
+    name="fastgraph",
     version="0.1",
-    description="MC-BRB Maximum Clique pybind11 module",
+    description="FastGraph maximum-clique pybind11 modules",
     ext_modules=ext_modules,
     cmdclass={"build_ext": build_ext},
 )
