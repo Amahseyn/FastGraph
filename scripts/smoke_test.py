@@ -12,12 +12,45 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
+def run_with_timeout(func, args=(), timeout=20):
+    """Run func(args) in a subprocess with timeout (seconds). Returns (ok, result_or_error, timed_out)."""
+    from multiprocessing import Process, Queue
+
+    def worker(q, args):
+        try:
+            res = func(*args)
+            q.put((True, res))
+        except Exception as e:
+            q.put((False, str(e)))
+
+    q = Queue()
+    p = Process(target=worker, args=(q, args))
+    p.start()
+    p.join(timeout)
+    if p.is_alive():
+        p.terminate()
+        p.join()
+        return False, "timed out", True
+    if q.empty():
+        return False, "no result", False
+    ok, val = q.get()
+    return ok, val, False
+
+
 def main():
+    print("SMOKE: start", flush=True)
+    print("SMOKE: cwd=", os.getcwd(), flush=True)
+    print("SMOKE: PYTHON=", sys.executable, flush=True)
     try:
+        print("SMOKE: importing mc_brb_module", flush=True)
         import mc_brb_module
+        print("SMOKE: imported mc_brb_module", flush=True)
+
+        print("SMOKE: importing max_clique_module", flush=True)
         import max_clique_module
+        print("SMOKE: imported max_clique_module", flush=True)
     except Exception as e:
-        print('Import failed:', e, file=sys.stderr)
+        print('SMOKE: Import failed:', e, file=sys.stderr, flush=True)
         sys.exit(2)
 
     # Tiny graph: triangle
@@ -28,14 +61,28 @@ def main():
         adjacency_list[u].add(v)
         adjacency_list[v].add(u)
 
-    c1 = mc_brb_module.max__clique(n, adjacency_list, 0.0, True)
-    c2 = max_clique_module.get_max_clique(n, adjacency_list)
+    # Run each call with a timeout so CI can't hang forever
+    print("SMOKE: running mc_brb_module.max__clique with timeout", flush=True)
+    ok1, res1, to1 = run_with_timeout(mc_brb_module.max__clique, args=(n, adjacency_list, 0.0, True), timeout=20)
+    print("SMOKE: mc_brb ok, timed_out?", ok1, to1, "res=", (res1 if isinstance(res1, str) else ('list(len=%d)'%len(res1))), flush=True)
 
-    if len(c1) != 3 or len(c2) != 3:
-        print('Smoke test failed: unexpected clique sizes', len(c1), len(c2))
+    print("SMOKE: running max_clique_module.get_max_clique with timeout", flush=True)
+    ok2, res2, to2 = run_with_timeout(max_clique_module.get_max_clique, args=(n, adjacency_list), timeout=20)
+    print("SMOKE: max_clique ok, timed_out?", ok2, to2, "res=", (res2 if isinstance(res2, str) else ('list(len=%d)'%len(res2))), flush=True)
+
+    if to1 or to2:
+        print('SMOKE: One of the module calls timed out', file=sys.stderr, flush=True)
+        sys.exit(4)
+
+    if not ok1 or not ok2:
+        print('SMOKE: One of the module calls failed', file=sys.stderr, flush=True)
+        sys.exit(5)
+
+    if len(res1) != 3 or len(res2) != 3:
+        print('SMOKE: unexpected clique sizes', len(res1), len(res2), file=sys.stderr, flush=True)
         sys.exit(3)
 
-    print('Smoke test passed: both modules imported and found triangle clique')
+    print('SMOKE: passed: both modules found triangle clique', flush=True)
 
 if __name__ == '__main__':
     main()
