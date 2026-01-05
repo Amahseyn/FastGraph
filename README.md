@@ -21,4 +21,18 @@ python scripts/find_max_clique.py test/p_hat1000-2_G46.clq --time 5
 
 This uses the `mc_brb_module` extension built from `Cpplibs/MaxClique/mc_brb.cpp`.
 
+## Comparison with NetworkX
+
+You can compare the compiled `mc_brb_module` against NetworkX's maximum-clique
+implementation using the included script:
+
+```bash
+source .venv/bin/activate
+python scripts/compare_with_networkx.py test/p_hat1000-2_G46.clq --time 5 --nx-timeout 30
+```
+
+The script reports clique sizes and runtimes for both implementations and can
+optionally timeout the NetworkX run to avoid very long computations on large graphs.
+
+
 
