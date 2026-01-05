@@ -66,8 +66,9 @@ def main():
     ok1, res1, to1 = run_with_timeout(mc_brb_module.max__clique, args=(n, adjacency_list, 0.0, True), timeout=20)
     print("SMOKE: mc_brb ok, timed_out?", ok1, to1, "res=", (res1 if isinstance(res1, str) else ('list(len=%d)'%len(res1))), flush=True)
 
-    print("SMOKE: running max_clique_module.get_max_clique with timeout", flush=True)
-    ok2, res2, to2 = run_with_timeout(max_clique_module.get_max_clique, args=(n, adjacency_list), timeout=20)
+    print("SMOKE: running max_clique_module.get_max_clique with timeout (passing short internal time limit)", flush=True)
+    # pass a small optional_time_limit to the C++ function so it returns quickly
+    ok2, res2, to2 = run_with_timeout(max_clique_module.get_max_clique, args=(n, adjacency_list, 77701, 1.0), timeout=20)
     print("SMOKE: max_clique ok, timed_out?", ok2, to2, "res=", (res2 if isinstance(res2, str) else ('list(len=%d)'%len(res2))), flush=True)
 
     if to1 or to2:

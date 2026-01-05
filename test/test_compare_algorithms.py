@@ -30,7 +30,7 @@ def test_both_find_triangle():
         adjacency_list[v].add(u)
 
     clique1 = mc_brb_module.max__clique(n, adjacency_list, 0.0, True)
-    clique2 = max_clique_module.get_max_clique(n, adjacency_list)
+    clique2 = max_clique_module.get_max_clique(n, adjacency_list, optional_time_limit=1.0)
 
     assert len(clique1) == 3
     assert len(clique2) == 3
@@ -48,7 +48,7 @@ def test_both_on_small_random_graph():
         adjacency_list[v].add(u)
 
     clique1 = mc_brb_module.max__clique(n, adjacency_list, 0.0, True)
-    clique2 = max_clique_module.get_max_clique(n, adjacency_list)
+    clique2 = max_clique_module.get_max_clique(n, adjacency_list, optional_time_limit=1.0)
 
     assert is_clique(adjacency_list, clique1)
     assert is_clique(adjacency_list, clique2)
