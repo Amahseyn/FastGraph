@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Pre-push hook: build extensions and run fast smoke test.
+# Exit non-zero to abort push if checks fail.
+
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT_DIR"
+
+VENV_DIR="$ROOT_DIR/.venv"
+PYTHON=${PYTHON:-python3}
+
+if [ -f "$VENV_DIR/bin/activate" ]; then
+    echo "Activating venv $VENV_DIR"
+    # shellcheck disable=SC1091
+    source "$VENV_DIR/bin/activate"
+    PYTHON="$VENV_DIR/bin/python"
+fi
+
+echo "Pre-push: using python: $PYTHON"
+
+echo "Building extensions (this may take a moment)"
+"$PYTHON" setup.py build_ext --inplace
+
+echo "Running fast smoke test"
+"$PYTHON" scripts/smoke_test.py
+
+echo "Pre-push checks passed. Proceeding with push."

@@ -34,5 +34,19 @@ python scripts/compare_with_networkx.py test/p_hat1000-2_G46.clq --time 5 --nx-t
 The script reports clique sizes and runtimes for both implementations and can
 optionally timeout the NetworkX run to avoid very long computations on large graphs.
 
+## Git hooks (pre-push checks)
+
+To ensure both C++ extensions build and pass a quick smoke test before pushing,
+this repository includes a pre-push hook in `.githooks/pre-push`. To enable it locally run:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+The hook builds the pybind11 extensions and runs `scripts/smoke_test.py`. If the
+build or test fails the push will be aborted. You can skip the hook by using
+`git push --no-verify` when necessary.
+
+
 
 
