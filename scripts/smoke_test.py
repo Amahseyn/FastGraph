@@ -41,17 +41,30 @@ def main():
     print("SMOKE: start", flush=True)
     print("SMOKE: cwd=", os.getcwd(), flush=True)
     print("SMOKE: PYTHON=", sys.executable, flush=True)
+    # Try to import both modules; if SKIP_MISSING_MODULES is set, treat missing modules as warnings
+    skip_missing = os.environ.get('SKIP_MISSING_MODULES', '0') not in ('0', '')
+    have_mc = False
+    have_max = False
+
     try:
         print("SMOKE: importing mc_brb_module", flush=True)
         import mc_brb_module
+        have_mc = True
         print("SMOKE: imported mc_brb_module", flush=True)
+    except Exception as e:
+        print('SMOKE: mc_brb_module import failed:', e, file=sys.stderr, flush=True)
+        if not skip_missing:
+            sys.exit(2)
 
+    try:
         print("SMOKE: importing max_clique_module", flush=True)
         import max_clique_module
+        have_max = True
         print("SMOKE: imported max_clique_module", flush=True)
     except Exception as e:
-        print('SMOKE: Import failed:', e, file=sys.stderr, flush=True)
-        sys.exit(2)
+        print('SMOKE: max_clique_module import failed:', e, file=sys.stderr, flush=True)
+        if not skip_missing:
+            sys.exit(2)
 
     # Tiny graph: triangle
     n = 3
